@@ -24,11 +24,23 @@ public class SnackShop {
     public void addProduct(Product product ){
         productMap.put(product.getID(),product);
     }
-    public Customer getCustomer (String id){
-        return customerMap.get(id);
+    public String getCustomer (String id){
+        Customer customer = customerMap.get(id);
+        if(customer == null){
+            InvalidCustomerException e = new InvalidCustomerException();
+            e.setMessage("Customer: " + id + " could not be found");
+            throw e;
+        }
+        return customer.toString();
     }
-    public Product getProduct(String id ){
-        return productMap.get(id);
+    public String getProduct(String id ){
+        Product product = productMap.get(id);
+        if(product == null){
+            InvalidProductException e  = new InvalidProductException();
+            e.setMessage("Product: " + id + " could not be found");
+            throw e;
+        }
+        return product.toString();
     }
 
     public boolean processTransaction(String customerID , String productID) throws SimulationException{
@@ -43,8 +55,8 @@ public class SnackShop {
             InvalidProductException e  = new InvalidProductException();
             e.setMessage("Product: " + productID + " could not be found");
             throw e;
-
         }
+
         try {
             customer.chargeAccount(product.calculatePrice());
         }catch(InsufficientBalanceException e ){
