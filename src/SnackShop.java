@@ -1,12 +1,23 @@
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.function.Predicate;
+import java.util.Scanner;
 import java.util.stream.Collectors;
 
 public class SnackShop {
-    private static final int FALSE = 0;
-    private static final int TRUE = 1;
+
+    private final int CUSTOMER_ID_INDEX = 0;
+    private final int CUSTOMER_NAME_INDEX = 1;
+    private final int CUSTOMER_BALANCE_INDEX = 2;
+    private final int CUSTOMER_TYPE_ENUM_INDEX = 3;
+    private final int CUSTOMER_DEPARTMENT_INDEX = 4;
+
+    private final int PRODUCT_ID_INDEX = 0;
+    private final int PRODUCT_NAME_INDEX = 1;
+    private final int PRODUCT_TYPE_ENUM_INDEX = 2;
+    private final int PRODUCT_PRICE_INDEX = 3;
 
 
     private final String name ;
@@ -17,13 +28,13 @@ public class SnackShop {
         this.name = name;
     }
 
-    public void addCustomer(Customer customer ){
+    private void addCustomer(Customer customer ){
         customerMap.put(customer.getID(), customer);
     }
-
-    public void addProduct(Product product ){
+    private void addProduct(Product product ){
         productMap.put(product.getID(),product);
     }
+
     public String getCustomer (String id){
         Customer customer = customerMap.get(id);
         if(customer == null){
@@ -33,6 +44,7 @@ public class SnackShop {
         }
         return customer.toString();
     }
+
     public String getProduct(String id ){
         Product product = productMap.get(id);
         if(product == null){
@@ -43,7 +55,7 @@ public class SnackShop {
         return product.toString();
     }
 
-    public boolean processTransaction(String customerID , String productID) throws SimulationException{
+    private boolean processTransaction(String customerID , String productID) throws SimulationException{
         Customer customer = customerMap.get(customerID);
         if (customer == null ){
             InvalidCustomerException e = new InvalidCustomerException();
@@ -111,6 +123,7 @@ public class SnackShop {
         }
         return count;
     }
+
     public float calculateMedianBalance(){
         ArrayList<Customer> customers = sortMap(customerMap, new CompareBalance());
         int midPoint = Math.round((float)customers.size() / 2.0f);
@@ -119,5 +132,273 @@ public class SnackShop {
             return (float)customers.get(midPoint).getBalance() + (float)customers.get(midPoint-1).getBalance() / 2.0f;
         }
         return customers.get(midPoint).getBalance();
+    }
+
+    public boolean parseCustomerFile(File customerFile)throws FileNotFoundException{
+        Scanner reader = new Scanner(customerFile);
+        while(reader.hasNextLine()){
+            String line = reader.nextLine();
+            String  fields[] = line.split(String.valueOf(Customer.delimiter));
+            if(fields.length == 3 ){
+                parseGenericCustomer(fields);
+            }
+            switch(fields[CUSTOMER_TYPE_ENUM_INDEX]){
+                case "STAFF":
+                    parseStaffCustomer(fields);
+                    break;
+                case "STUDENT":
+                    parseStudentCustomer(fields);
+            }
+        }
+
+        return true;
+    }
+    private boolean parseGenericCustomer(String fields[])throws InvalidCustomerException{
+            Customer c = new Customer(
+                    fields[CUSTOMER_ID_INDEX],
+                    fields[CUSTOMER_NAME_INDEX],
+                    Integer.parseInt(fields[CUSTOMER_BALANCE_INDEX])
+            );
+            addCustomer(c);
+
+        return true;
+    }
+
+    private boolean parseStaffCustomer(String fields[])throws InvalidCustomerException{
+            StaffCustomer.DEPARTMENT department  = StaffCustomer.DEPARTMENT.NONE;
+            switch (fields[CUSTOMER_DEPARTMENT_INDEX]){
+                case "BIO":
+                    department = StaffCustomer.DEPARTMENT.BIO;
+                    break;
+                case "CMP":
+                    department = StaffCustomer.DEPARTMENT.CMP;
+                    break;
+                case "MTH":
+                    department = StaffCustomer.DEPARTMENT.MTH;
+            }
+            StaffCustomer sCustomer = new StaffCustomer(
+                    fields[CUSTOMER_ID_INDEX],
+                    fields[CUSTOMER_NAME_INDEX],
+                    Integer.parseInt(fields[CUSTOMER_BALANCE_INDEX]),
+                    department
+            );
+            addCustomer(sCustomer);
+            return true;
+    }
+
+    private boolean parseStudentCustomer(String fields[]){
+        StudentCustomer sCustomer = new StudentCustomer(
+            fields[CUSTOMER_ID_INDEX],
+            fields[CUSTOMER_NAME_INDEX],
+            Integer.parseInt(fields[CUSTOMER_BALANCE_INDEX])
+        );
+        addCustomer(sCustomer);
+        return true;
+    }
+
+    public boolean parseProductFile(File productFile )throws FileNotFoundException{
+        return true;
+    }
+    private boolean parseDrink(String fields[] )throws InvalidDrinkException{
+        Drink.SUGAR_LEVEL sLevel = Drink.SUGAR_LEVEL.NONE;
+        switch (fields[PRODUCT_TYPE_ENUM_INDEX]){
+            case "low":
+                sLevel = Drink.SUGAR_LEVEL.LOW;
+                break;
+            case "high":
+                sLevel = Drink.SUGAR_LEVEL.HIGH;
+        }
+
+        Drink drink = new Drink(
+            fields[PRODUCT_ID_INDEX],
+            fields[PRODUCT_NAME_INDEX],
+            sLevel,
+            Integer.parseInt(fields[PRODUCT_PRICE_INDEX])
+        );
+        addProduct(drink);
+        return true;
+    }
+    private boolean parseFood(String fields[])throws InvalidFoodException{
+        Food.FOOD_TYPE fType = Food.FOOD_TYPE.COLD;
+        if (fields[PRODUCT_TYPE_ENUM_INDEX].equals("hot")){
+            fType = Food.FOOD_TYPE.HOT;
+        }
+
+        Food food = new Food(
+            fields[PRODUCT_ID_INDEX],
+            fields[PRODUCT_NAME_INDEX],
+            fType,
+            Integer.parseInt(fields[PRODUCT_PRICE_INDEX])
+        );
+
+        return true;
+    }
+
+    public boolean parseTransactions(File ledger )throws FileNotFoundException {
+        final int ACTION_INDEX = 0;
+        final int TYPE_ENUM_INDEX = 4;
+        Scanner reader = new Scanner(ledger);
+        while(reader.hasNextLine()){
+            String line = reader.nextLine();
+            String fields[] = line.split(",");
+            switch(fields[ACTION_INDEX]){
+                case "NEW_CUSTOMER":
+                    if(!handleNewCustomer(fields)){
+                        System.err.println("unrecognised transaction: ");
+                        System.err.println(line);
+                        System.err.println("transaction will be ignored");
+                    }
+                    break;
+                case "ADD_FUNDS":
+                    if (!handleAddFunds(fields)){
+                        System.err.println("unrecognised transaction: ");
+                        System.err.println(line);
+                        System.err.println("transaction will be ignored");
+                    }
+                    break;
+                case "PURCHASE":
+                    try{
+                        handlePurchase(fields);
+                    }catch(SimulationException e ){
+                        System.err.println("error in transaction: ");
+                        System.err.println(line);
+                        System.err.println(e.toString());
+                        System.err.println("transaction will be ignored");
+                    }
+            }
+
+        }
+
+        return true;
+    }
+    private boolean handleNewCustomer(String fields[]){
+        if(fields.length >=4) {
+            String test = fields[3];
+            if (!isNumeric(test)) {
+                /*assume it is either a new student or staff customer */
+                switch(test){
+                    case "STAFF":
+                        return parseNewStaffCustomer(fields);
+                        //break;
+                    case "STUDENT":
+                        return parseNewStudent(fields);
+                        //break;
+                    default:
+                       return false;
+                }
+            }
+            return parseNewGenericCustomer(fields);
+        }else{
+            return false;
+        }
+    }
+    /* handles new generic customer in the transaction file  */
+    private boolean parseNewGenericCustomer(String fields[]){
+        final int ID_INDEX = 1;
+        final int NAME_INDEX = 2;
+        final int BALANCE_INDEX = 3;
+        if (fields.length == 3){
+            parseGenericCustomer(
+                    new String[]{
+                            fields[ID_INDEX],
+                            fields[NAME_INDEX],
+                            "0"
+                    }
+            );
+            return true;
+        }
+
+        if (fields.length == 4 ){
+            parseGenericCustomer(
+                    new String[]{
+                            fields[ID_INDEX],
+                            fields[NAME_INDEX],
+                            fields[BALANCE_INDEX]
+                    }
+            );
+            return true;
+        }
+        return false;
+    }
+    /* handles new student customers  in the transaction file */
+    private boolean parseNewStudent(String fields[] ){
+        final int ID_INDEX = 1;
+        final int NAME_INDEX = 2;
+        final int BALANCE_INDEX = 4;
+        return parseStudentCustomer(
+                new String[]{
+                        fields[ID_INDEX],
+                        fields[NAME_INDEX],
+                        fields[BALANCE_INDEX]
+                }
+        );
+
+    }
+
+    /* handles new staff customers in the transaction file */
+    private boolean parseNewStaffCustomer(String fields[]){
+        final int ID_INDEX = 1;
+        final int NAME_INDEX = 2;
+        final int TYPE_ENUM_INDEX = 3;
+
+        if(fields.length == 5 ){
+            /*then department was omitted*/
+            final int BALANCE_INDEX = 4;
+            parseStaffCustomer(
+                    new String[]{
+                            fields[ID_INDEX],
+                            fields[NAME_INDEX],
+                            fields[BALANCE_INDEX],
+                            "none"
+                    }
+            );
+            return true;
+        }
+
+        if(fields.length == 6 ){
+            final int DEPARTMENT_INDEX = 4;
+            final int BALANCE_INDEX =5;
+
+            parseStaffCustomer(
+                    new String[]{
+                            fields[ID_INDEX],
+                            fields[NAME_INDEX],
+                            fields[BALANCE_INDEX],
+                            fields[DEPARTMENT_INDEX]
+                    }
+            );
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean isNumeric(String str ){
+        for (int i = 0;  i < str.length() ; i++ ){
+            if(!Character.isDigit(str.charAt(i))){
+                return false;
+            }
+        }
+        return true;
+    }
+    /*handles the add_funds transaction in the transaction file */
+    private boolean handleAddFunds(String fields[]) {
+        final int ID_INDEX = 1;
+        final int FUNDS_INDEX = 2;
+        Customer customer = customerMap.get(fields[ID_INDEX]);
+        if (customer == null){
+            return false;
+        }
+        if(!isNumeric(fields[FUNDS_INDEX])){
+            return  false;
+        }
+        customer.addFunds(Integer.parseInt(fields[FUNDS_INDEX]));
+        return true;
+    }
+    /*validates a purchase in the transaction file  */
+    private boolean handlePurchase(String fields[])throws SimulationException{
+        final int CUSTOMER_ID = 1;
+        final int PRODUCT_ID = 2;
+        return processTransaction(fields[CUSTOMER_ID],fields[PRODUCT_ID]);
     }
 }

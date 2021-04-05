@@ -1,5 +1,5 @@
 public class StaffCustomer extends Customer{
-    public enum DEPARTMENT {
+    public   enum DEPARTMENT {
         BIO,
         CMP,
         MTH,
@@ -36,9 +36,9 @@ public class StaffCustomer extends Customer{
 
     }
     @Override
-    public String toString(){
+    public String toString() {
         String department = "";
-        switch (M_DEPARTMENT){
+        switch (M_DEPARTMENT) {
             case BIO:
                 department = "BIO";
                 break;
