@@ -1,6 +1,6 @@
 public class StudentCustomer extends Customer{
-    private static final float DISCOUNT = 0.05f;
-    private static final int OVERDRAFT = 500;
+    public static final float DISCOUNT = 0.05f;
+    public static final int OVERDRAFT = 500;
     public StudentCustomer(String id , String name , int balance ) {
         super(id,name,balance + OVERDRAFT);
 
@@ -11,7 +11,7 @@ public class StudentCustomer extends Customer{
         //addFunds(OVERDRAFT);
     }
     @Override
-    public void chargeAccount(int charge) throws InsufficientBalanceException{
+    public int chargeAccount(int charge) throws InsufficientBalanceException{
         float fCharge = charge;
         fCharge = fCharge - fCharge*DISCOUNT;
         int result = (getBalance()) - Math.round(fCharge);
@@ -22,7 +22,7 @@ public class StudentCustomer extends Customer{
                     "item charge was:" + fCharge );
             throw e;
         }
-        super.chargeAccount(Math.round(fCharge));
+        return super.chargeAccount(Math.round(fCharge));
     }
     @Override
     public String toString(){

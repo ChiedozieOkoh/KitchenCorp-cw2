@@ -7,6 +7,9 @@ public class StaffCustomer extends Customer{
         NONE
     }
     private final DEPARTMENT M_DEPARTMENT;
+    public static final float BIO_DISCOUNT = 0.025f;
+    public static final float CMP_DISCOUNT = 0.1f;
+    public static final float MTH_DISCOUNT = BIO_DISCOUNT;
     public StaffCustomer(String id , String name , int balance , DEPARTMENT department ){
         super(id,name,balance);
         M_DEPARTMENT = department;
@@ -17,22 +20,23 @@ public class StaffCustomer extends Customer{
     }
 
     @Override
-    public void chargeAccount(int charge ){
+    public int chargeAccount(int charge ){
         float discount = 0.0f;
         float fCharge = charge;
 
         switch (M_DEPARTMENT){
             case BIO:
-                discount = 0.025f;
+                discount = BIO_DISCOUNT;
                 break;
             case CMP:
-                discount = 0.1f;
+                discount = CMP_DISCOUNT;
                 break;
             case MTH:
-                discount = 0.025f;
+                discount = MTH_DISCOUNT;
         }
         fCharge = fCharge - (fCharge*discount);
-         super.chargeAccount(Math.round(fCharge));
+        System.out.println("staff charged " + Math.round(fCharge));
+         return super.chargeAccount(Math.round(fCharge));
 
     }
     @Override

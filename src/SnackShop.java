@@ -14,7 +14,7 @@ public class SnackShop {
     private final int CUSTOMER_TYPE_ENUM_INDEX = 3;
     private final int CUSTOMER_DEPARTMENT_INDEX = 4;
 
-    private final int PRODUCT_ID_INDEX = 0;
+    private  final int PRODUCT_ID_INDEX = 0;
     private final int PRODUCT_NAME_INDEX = 1;
     private final int PRODUCT_TYPE_ENUM_INDEX = 2;
     private final int PRODUCT_PRICE_INDEX = 3;
@@ -23,15 +23,19 @@ public class SnackShop {
     private final String name ;
     private HashMap<String , Customer>customerMap = new HashMap<>();
     private HashMap<String,Product>productMap = new HashMap<>();
+    private int turnOver = 0;
+
+
 
     public SnackShop(String name ){
         this.name = name;
+
     }
 
-    private void addCustomer(Customer customer ){
+    public void addCustomer(Customer customer ){
         customerMap.put(customer.getID(), customer);
     }
-    private void addProduct(Product product ){
+    public void addProduct(Product product ){
         productMap.put(product.getID(),product);
     }
 
@@ -70,7 +74,8 @@ public class SnackShop {
         }
 
         try {
-            customer.chargeAccount(product.calculatePrice());
+             int profit = customer.chargeAccount(product.calculatePrice());
+             turnOver += profit;
         }catch(InsufficientBalanceException e ){
             throw e ;
         }
@@ -83,8 +88,7 @@ public class SnackShop {
     private <T>ArrayList<T> sortMap(HashMap<String,T>map , Comparator<T>comparator){
         ArrayList<T>Values = new ArrayList<T>(
                 map.values()
-                        .stream()
-                        .toList()
+
         );
         Values.sort(comparator);
         return Values;
@@ -104,6 +108,7 @@ public class SnackShop {
             return Integer.compare(p1.getBasePrice(),p2.getBasePrice());
         }
     }
+
 
     public int findLargestBasePrice(){
         ArrayList<Product>shortList = sortMap(productMap,new CompareBasePrice());
@@ -136,53 +141,138 @@ public class SnackShop {
 
     public boolean parseCustomerFile(File customerFile)throws FileNotFoundException{
         Scanner reader = new Scanner(customerFile);
+
         while(reader.hasNextLine()){
             String line = reader.nextLine();
             String  fields[] = line.split(String.valueOf(Customer.delimiter));
+
             if(fields.length == 3 ){
-                parseGenericCustomer(fields);
-            }
+                try {
+                    parseGenericCustomer(fields);
+                    System.out.println(" Customer : " + line + " parsed successfully");
+                }catch(InvalidCustomerException e ){
+                    System.err.println("Unrecognised customer: ");
+                    System.err.println(line);
+                    System.err.println(e.toString());
+                    System.err.println(" ");
+                }
+            }else{
             switch(fields[CUSTOMER_TYPE_ENUM_INDEX]){
                 case "STAFF":
-                    parseStaffCustomer(fields);
+                    try {
+                        parseStaffCustomer(fields);
+                        System.out.println(" Customer : " + line + " parsed successfully");
+                    }catch(InvalidCustomerException e ){
+                        System.err.println("Unrecognised staff customer: ");
+                        System.err.println(line);
+                        System.err.println(e.toString());
+                        System.err.println(" ");
+                    }
                     break;
                 case "STUDENT":
-                    parseStudentCustomer(fields);
+                    try {
+                        parseStudentCustomer(fields);
+                        System.out.println(" Customer : " + line + " parsed successfully");
+                    }catch(InvalidCustomerException e ){
+                        System.err.println("Unrecognised student customer: ");
+                        System.err.println(line);
+                        System.err.println(e.toString());
+                        System.err.println(" ");
+                    }
             }
+        }
+
         }
 
         return true;
     }
+    public boolean parseProductFile(File productFile)throws FileNotFoundException{
+        Scanner reader = new Scanner(productFile);
+        while(reader.hasNextLine()){
+            String line = reader.nextLine();
+            String fields[] = line.split(String.valueOf(Product.delimiter));
+            boolean isValid = false;
+            if(fields[PRODUCT_TYPE_ENUM_INDEX].equals("hot") | fields[PRODUCT_TYPE_ENUM_INDEX].equals("cold")){
+                try{
+                    isValid = parseFood(fields);
+                    System.out.println("product: " + line + " parsed successfully ");
+                }catch(InvalidFoodException e){
+                    System.err.println("Unrecognised food item: ");
+                    System.err.println(line);
+                    System.err.println(e.toString());
+                    System.err.println(" ");
+                }
+            }
+
+            if(fields[PRODUCT_TYPE_ENUM_INDEX].equals("none")
+                |fields[PRODUCT_TYPE_ENUM_INDEX].equals("low")
+                |fields[PRODUCT_TYPE_ENUM_INDEX].equals("high")
+            ){
+                try{
+                    isValid = parseDrink(fields);
+                    System.out.println("product: " + line + " parsed successfully ");
+                }catch(InvalidDrinkException e ){
+                    System.err.println("Error: Unrecognised drink item: ");
+                    System.err.println(line);
+                    System.err.println(e.toString());
+                    System.err.println(" ");
+                }
+            }
+            if(!isValid){
+                System.err.println("Error: Unrecognised product: ");
+                System.err.println(line);
+                System.err.println(" ");
+            }
+
+        }
+        return true;
+    }
     private boolean parseGenericCustomer(String fields[])throws InvalidCustomerException{
-            Customer c = new Customer(
-                    fields[CUSTOMER_ID_INDEX],
-                    fields[CUSTOMER_NAME_INDEX],
-                    Integer.parseInt(fields[CUSTOMER_BALANCE_INDEX])
-            );
-            addCustomer(c);
+            try {
+                Customer c = new Customer(
+                        fields[CUSTOMER_ID_INDEX],
+                        fields[CUSTOMER_NAME_INDEX],
+                        Integer.parseInt(fields[CUSTOMER_BALANCE_INDEX])
+                );
+                addCustomer(c);
+
+            }catch(InvalidCustomerException e ){
+                throw e ;
+            }
 
         return true;
     }
 
     private boolean parseStaffCustomer(String fields[])throws InvalidCustomerException{
-            StaffCustomer.DEPARTMENT department  = StaffCustomer.DEPARTMENT.NONE;
-            switch (fields[CUSTOMER_DEPARTMENT_INDEX]){
-                case "BIO":
-                    department = StaffCustomer.DEPARTMENT.BIO;
-                    break;
-                case "CMP":
-                    department = StaffCustomer.DEPARTMENT.CMP;
-                    break;
-                case "MTH":
-                    department = StaffCustomer.DEPARTMENT.MTH;
-            }
-            StaffCustomer sCustomer = new StaffCustomer(
+            if(fields.length == 4 ){
+                StaffCustomer sCustomer = new StaffCustomer(
                     fields[CUSTOMER_ID_INDEX],
                     fields[CUSTOMER_NAME_INDEX],
                     Integer.parseInt(fields[CUSTOMER_BALANCE_INDEX]),
-                    department
-            );
-            addCustomer(sCustomer);
+                    StaffCustomer.DEPARTMENT.NONE
+
+                );
+                addCustomer(sCustomer);
+            }else {
+                StaffCustomer.DEPARTMENT department = StaffCustomer.DEPARTMENT.NONE;
+                switch (fields[CUSTOMER_DEPARTMENT_INDEX]) {
+                    case "BIO":
+                        department = StaffCustomer.DEPARTMENT.BIO;
+                        break;
+                    case "CMP":
+                        department = StaffCustomer.DEPARTMENT.CMP;
+                        break;
+                    case "MTH":
+                        department = StaffCustomer.DEPARTMENT.MTH;
+                }
+                StaffCustomer sCustomer = new StaffCustomer(
+                        fields[CUSTOMER_ID_INDEX],
+                        fields[CUSTOMER_NAME_INDEX],
+                        Integer.parseInt(fields[CUSTOMER_BALANCE_INDEX]),
+                        department
+                );
+                addCustomer(sCustomer);
+            }
             return true;
     }
 
@@ -196,28 +286,8 @@ public class SnackShop {
         return true;
     }
 
-    public boolean parseProductFile(File productFile )throws FileNotFoundException{
-        return true;
-    }
-    private boolean parseDrink(String fields[] )throws InvalidDrinkException{
-        Drink.SUGAR_LEVEL sLevel = Drink.SUGAR_LEVEL.NONE;
-        switch (fields[PRODUCT_TYPE_ENUM_INDEX]){
-            case "low":
-                sLevel = Drink.SUGAR_LEVEL.LOW;
-                break;
-            case "high":
-                sLevel = Drink.SUGAR_LEVEL.HIGH;
-        }
 
-        Drink drink = new Drink(
-            fields[PRODUCT_ID_INDEX],
-            fields[PRODUCT_NAME_INDEX],
-            sLevel,
-            Integer.parseInt(fields[PRODUCT_PRICE_INDEX])
-        );
-        addProduct(drink);
-        return true;
-    }
+    /*used to read food items in the product file  */
     private boolean parseFood(String fields[])throws InvalidFoodException{
         Food.FOOD_TYPE fType = Food.FOOD_TYPE.COLD;
         if (fields[PRODUCT_TYPE_ENUM_INDEX].equals("hot")){
@@ -230,10 +300,32 @@ public class SnackShop {
             fType,
             Integer.parseInt(fields[PRODUCT_PRICE_INDEX])
         );
+        addProduct(food);
 
         return true;
     }
+    /*used to read drink items in the product file */
+    private boolean parseDrink(String fields []) throws InvalidDrinkException {
+        Drink.SUGAR_LEVEL sLevel = Drink.SUGAR_LEVEL.NONE;
+        switch (fields[PRODUCT_TYPE_ENUM_INDEX]) {
+            case "low":
+                sLevel = Drink.SUGAR_LEVEL.LOW;
+                break;
+            case "high":
+                sLevel = Drink.SUGAR_LEVEL.HIGH;
+        }
 
+        Drink drink = new Drink(
+                fields[PRODUCT_ID_INDEX],
+                fields[PRODUCT_NAME_INDEX],
+                sLevel,
+                Integer.parseInt(fields[PRODUCT_PRICE_INDEX])
+        );
+        addProduct(drink);
+        return true;
+    }
+
+    /*handles the transaction file  */
     public boolean parseTransactions(File ledger )throws FileNotFoundException {
         final int ACTION_INDEX = 0;
         final int TYPE_ENUM_INDEX = 4;
@@ -247,23 +339,28 @@ public class SnackShop {
                         System.err.println("unrecognised transaction: ");
                         System.err.println(line);
                         System.err.println("transaction will be ignored");
+                        System.err.println(" ");
                     }
+                    System.out.println("transaction: " + line + " was successful");
                     break;
                 case "ADD_FUNDS":
                     if (!handleAddFunds(fields)){
                         System.err.println("unrecognised transaction: ");
                         System.err.println(line);
                         System.err.println("transaction will be ignored");
+                        System.err.println(" ");
                     }
+                    System.out.println("transaction: " + line + " was successful");
                     break;
                 case "PURCHASE":
                     try{
                         handlePurchase(fields);
+                        System.out.println("transaction: " + line + " was successful");
                     }catch(SimulationException e ){
                         System.err.println("error in transaction: ");
                         System.err.println(line);
                         System.err.println(e.toString());
-                        System.err.println("transaction will be ignored");
+                        System.err.println(" ");
                     }
             }
 
@@ -271,6 +368,7 @@ public class SnackShop {
 
         return true;
     }
+    /*helper function to processing customers in the transaction file  */
     private boolean handleNewCustomer(String fields[]){
         if(fields.length >=4) {
             String test = fields[3];
@@ -373,6 +471,7 @@ public class SnackShop {
         return false;
     }
 
+
     private boolean isNumeric(String str ){
         for (int i = 0;  i < str.length() ; i++ ){
             if(!Character.isDigit(str.charAt(i))){
@@ -400,5 +499,8 @@ public class SnackShop {
         final int CUSTOMER_ID = 1;
         final int PRODUCT_ID = 2;
         return processTransaction(fields[CUSTOMER_ID],fields[PRODUCT_ID]);
+    }
+    public int getTurnOver(){
+        return turnOver;
     }
 }

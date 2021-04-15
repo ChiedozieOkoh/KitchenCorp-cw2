@@ -46,7 +46,7 @@ public class Customer {
     public void addFunds(int amount ){
         balance += amount;
     }
-    public void chargeAccount(int charge) throws InsufficientBalanceException{
+    public int chargeAccount(int charge) throws InsufficientBalanceException{
         if ((balance - charge) < 0 ){
             InsufficientBalanceException e = new InsufficientBalanceException();
             e.setMessage("customer:" + System.lineSeparator() +
@@ -57,6 +57,7 @@ public class Customer {
         }
 
         balance = balance - charge;
+        return charge;
     }
     public int getBalance(){
         return balance;
