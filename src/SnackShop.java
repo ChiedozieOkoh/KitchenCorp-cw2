@@ -1,3 +1,16 @@
+/*-------------------------------------------------------------------------------------------
+ *   NAME: SnackShop.java
+ *   DATE: 20th April.java
+ *   AUTHOR: Chiedozie Okoh
+ *
+ *   SUMMARY: Processes input from customer, product and transaction files.
+ *            responsible for keeping records of the customers , products
+ *            and sales of the snackshop being simulated.
+ *            also contains methods for sorting customer and product records.
+ *
+ *
+ *-------------------------------------------------------------------------------------------*/
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -39,7 +52,7 @@ public class SnackShop {
         productMap.put(product.getID(),product);
     }
 
-    public String getCustomer (String id){
+    public String getCustomer (String id)throws InvalidCustomerException{
         Customer customer = customerMap.get(id);
         if(customer == null){
             InvalidCustomerException e = new InvalidCustomerException();
@@ -49,7 +62,7 @@ public class SnackShop {
         return customer.toString();
     }
 
-    public String getProduct(String id ){
+    public String getProduct(String id )throws InvalidProductException{
         Product product = productMap.get(id);
         if(product == null){
             InvalidProductException e  = new InvalidProductException();
@@ -58,7 +71,7 @@ public class SnackShop {
         }
         return product.toString();
     }
-
+/* simulates customer buying a product */
     private boolean processTransaction(String customerID , String productID) throws SimulationException{
         Customer customer = customerMap.get(customerID);
         if (customer == null ){
@@ -75,6 +88,8 @@ public class SnackShop {
 
         try {
              int profit = customer.chargeAccount(product.calculatePrice());
+
+
              turnOver += profit;
         }catch(InsufficientBalanceException e ){
             throw e ;
@@ -102,6 +117,8 @@ public class SnackShop {
         }
     }
 
+
+
     private static class CompareBasePrice implements Comparator<Product>{
         @Override
         public int compare(Product p1, Product p2){
@@ -122,7 +139,7 @@ public class SnackShop {
         ArrayList<Customer> customers = new ArrayList<>(customerMap.values()
             .stream().collect(Collectors.toUnmodifiableList()));
         for(Customer i : customers){
-            if (i.getBalance() < 0  || i.isNegative()){
+            if (i.isNegative()){
                 count++;
             }
         }
@@ -138,7 +155,7 @@ public class SnackShop {
         }
         return customers.get(midPoint).getBalance();
     }
-
+/*validates input from a customer .txt file, creates customer objects and adds them to the customer map */
     public boolean parseCustomerFile(File customerFile)throws FileNotFoundException{
         Scanner reader = new Scanner(customerFile);
 
@@ -186,6 +203,7 @@ public class SnackShop {
 
         return true;
     }
+/*validates input from a customer .txt file, creates customer objects and adds them to the product map */
     public boolean parseProductFile(File productFile)throws FileNotFoundException{
         Scanner reader = new Scanner(productFile);
         while(reader.hasNextLine()){
@@ -227,6 +245,7 @@ public class SnackShop {
         }
         return true;
     }
+    /* creates customer objects from lines in the customer txt file */
     private boolean parseGenericCustomer(String fields[])throws InvalidCustomerException{
             try {
                 Customer c = new Customer(
@@ -242,7 +261,7 @@ public class SnackShop {
 
         return true;
     }
-
+    /* creates staff objects from lines in the customer txt file */
     private boolean parseStaffCustomer(String fields[])throws InvalidCustomerException{
             if(fields.length == 4 ){
                 StaffCustomer sCustomer = new StaffCustomer(
@@ -275,8 +294,8 @@ public class SnackShop {
             }
             return true;
     }
-
-    private boolean parseStudentCustomer(String fields[]){
+    /* creates student objects from lines in the customer txt file */
+    private boolean parseStudentCustomer(String fields[])throws InvalidCustomerException{
         StudentCustomer sCustomer = new StudentCustomer(
             fields[CUSTOMER_ID_INDEX],
             fields[CUSTOMER_NAME_INDEX],
@@ -287,8 +306,8 @@ public class SnackShop {
     }
 
 
-    /*used to read food items in the product file  */
-    private boolean parseFood(String fields[])throws InvalidFoodException{
+    /* creates food objects from lines in the products txt file */
+    private boolean parseFood(String fields[]) throws InvalidFoodException{
         Food.FOOD_TYPE fType = Food.FOOD_TYPE.COLD;
         if (fields[PRODUCT_TYPE_ENUM_INDEX].equals("hot")){
             fType = Food.FOOD_TYPE.HOT;
@@ -304,8 +323,8 @@ public class SnackShop {
 
         return true;
     }
-    /*used to read drink items in the product file */
-    private boolean parseDrink(String fields []) throws InvalidDrinkException {
+    /* creates drink objects from lines in the products txt file */
+    private boolean parseDrink(String fields[]) throws InvalidDrinkException {
         Drink.SUGAR_LEVEL sLevel = Drink.SUGAR_LEVEL.NONE;
         switch (fields[PRODUCT_TYPE_ENUM_INDEX]) {
             case "low":
@@ -325,7 +344,7 @@ public class SnackShop {
         return true;
     }
 
-    /*handles the transaction file  */
+    /*validates and processes transactions in the transaction file  */
     public boolean parseTransactions(File ledger )throws FileNotFoundException {
         final int ACTION_INDEX = 0;
         final int TYPE_ENUM_INDEX = 4;
@@ -369,7 +388,7 @@ public class SnackShop {
         return true;
     }
     /*helper function to processing customers in the transaction file  */
-    private boolean handleNewCustomer(String fields[]){
+    private boolean handleNewCustomer(String fields[])throws InvalidCustomerException{
         if(fields.length >=4) {
             String test = fields[3];
             if (!isNumeric(test)) {
@@ -390,8 +409,8 @@ public class SnackShop {
             return false;
         }
     }
-    /* handles new generic customer in the transaction file  */
-    private boolean parseNewGenericCustomer(String fields[]){
+    /* handles addition of new generic customer in the transaction file  */
+    private boolean parseNewGenericCustomer(String fields[])throws InvalidCustomerException{
         final int ID_INDEX = 1;
         final int NAME_INDEX = 2;
         final int BALANCE_INDEX = 3;
@@ -418,8 +437,8 @@ public class SnackShop {
         }
         return false;
     }
-    /* handles new student customers  in the transaction file */
-    private boolean parseNewStudent(String fields[] ){
+    /* handles addition of  new student customers  in the transaction file */
+    private boolean parseNewStudent(String fields[] )throws InvalidCustomerException{
         final int ID_INDEX = 1;
         final int NAME_INDEX = 2;
         final int BALANCE_INDEX = 4;
@@ -433,8 +452,8 @@ public class SnackShop {
 
     }
 
-    /* handles new staff customers in the transaction file */
-    private boolean parseNewStaffCustomer(String fields[]){
+    /* handles addition of new staff customers in the transaction file */
+    private boolean parseNewStaffCustomer(String fields[])throws InvalidCustomerException{
         final int ID_INDEX = 1;
         final int NAME_INDEX = 2;
         final int TYPE_ENUM_INDEX = 3;
@@ -481,7 +500,7 @@ public class SnackShop {
         return true;
     }
     /*handles the add_funds transaction in the transaction file */
-    private boolean handleAddFunds(String fields[]) {
+    private boolean handleAddFunds(String fields[])throws InvalidCustomerException{
         final int ID_INDEX = 1;
         final int FUNDS_INDEX = 2;
         Customer customer = customerMap.get(fields[ID_INDEX]);
@@ -494,7 +513,7 @@ public class SnackShop {
         customer.addFunds(Integer.parseInt(fields[FUNDS_INDEX]));
         return true;
     }
-    /*validates a purchase in the transaction file  */
+    /*wrapper function that handles purchases in the transaction file  */
     private boolean handlePurchase(String fields[])throws SimulationException{
         final int CUSTOMER_ID = 1;
         final int PRODUCT_ID = 2;
@@ -502,5 +521,8 @@ public class SnackShop {
     }
     public int getTurnOver(){
         return turnOver;
+    }
+    public String GetName(){
+        return name;
     }
 }

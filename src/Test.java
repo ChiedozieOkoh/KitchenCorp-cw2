@@ -1,12 +1,17 @@
-import java.util.concurrent.ConcurrentLinkedDeque;
+/*-------------------------------------------------------------------------------------------
+ *   NAME: Test.java
+ *   DATE: 20th April.java
+ *   AUTHOR: Chiedozie Okoh
+ *
+ *   SUMMARY: Test harness for program functions.
+ *            Tests stop early If an error is encountered.
+ *
+ *
+ *-------------------------------------------------------------------------------------------*/
 
 public class Test {
     public static void main(String args[]){
-        /*
-            TO-DO:
-                remove hard coded values in tests
-                e.g make tax and discount constants public  so test can use them.
-        */
+
         SnackShop shop = new SnackShop("test");
         if (!testCustomerID()){
             System.err.println("Customer id tests failed! ");
@@ -372,6 +377,7 @@ public class Test {
             printFailure(15,summary,null);
             return false;
         }
+        printSuccess(15,summary,c3);
 
         summary = "assert that median balance is calculated correctly";
         System.out.println(""+shop.calculateMedianBalance());

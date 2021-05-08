@@ -1,3 +1,17 @@
+/*-------------------------------------------------------------------------------------------
+ *   NAME: Drink.java
+ *   DATE: 20th April.java
+ *   AUTHOR: Chiedozie Okoh
+ *
+ *   SUMMARY: Implentation of Product class. Encapsulates calculating the price of Food
+ *            and serialising food objects
+ *
+ *   NOTES:
+ *       inherits from Product
+ *
+ *   PUBLIC FIELDS:
+ *       ENUMERATE: FOOD_TYPE
+ *-------------------------------------------------------------------------------------------*/
 public class Food extends Product {
     public enum FOOD_TYPE {
         HOT,

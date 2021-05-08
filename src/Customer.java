@@ -1,9 +1,22 @@
+/*--------------------------------------------------------------------------------
+*   NAME: Customer.java
+*   DATE: 20th April 2021
+*   AUTHOR: Chiedozie Okoh
+*
+*   SUMMARY:
+*       Class encapsulates information about customer information such as : ID , name , balance
+*       Provides methods that encapsulate charging customer accounts , adding funds to customer accounts
+*       and serialising a customer object.
+*
+*   NOTES:
+*       Overridden by StaffCustomer.java , StudentCustomer.java
+*
+* ----------------------------------------------------------------------------------*/
 public class Customer {
     public static final char delimiter = '#';
     private final String id ;
     private final String name;
     private int balance  = 0;
-    private boolean isNegative = false;
     public Customer(String id, String name , int balance )throws InvalidCustomerException{
         validate(id,balance);
         this.id = id ;
@@ -70,7 +83,10 @@ public class Customer {
         return name;
     }
     public boolean isNegative(){
-        return isNegative;
+        if(getBalance() < 0){
+            return true;
+        }
+        return false;
     }
 
 

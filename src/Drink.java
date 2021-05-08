@@ -1,3 +1,17 @@
+/*-------------------------------------------------------------------------------------------
+*   NAME: Drink.java
+*   DATE: 20th April.java
+*   AUTHOR: Chiedozie Okoh
+*
+*   SUMMARY: Implentation of Product class. Encapsulates calculating the price of a Drink
+*            and serialising  drink objects
+*
+*   NOTES:
+*       inherits from Product
+*
+*   PUBLIC FIELDS:
+*       ENUMERATE: SUGAR_LEVEL
+*-------------------------------------------------------------------------------------------*/
 public class Drink extends Product{
     public enum SUGAR_LEVEL{
         HIGH ,

@@ -1,3 +1,13 @@
+/*-------------------------------------------------------------------------------------------
+ *   NAME: Simulation.java
+ *   DATE: 20th April.java
+ *   AUTHOR: Chiedozie Okoh
+ *
+ *   NOTES:
+ *       Initialises SnackShop with necessary files
+ *
+ *
+ *-------------------------------------------------------------------------------------------*/
 import java.io.File;
 import java.io.FileNotFoundException;
 

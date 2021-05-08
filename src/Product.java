@@ -1,3 +1,16 @@
+/*-------------------------------------------------------------------------------------------
+ *   NAME: Product.java
+ *   DATE: 20th April.java
+ *   AUTHOR: Chiedozie Okoh
+ *
+ *   SUMMARY: encapsulates behaviour for calculating price of products
+ *
+ *
+ *
+ *
+ *
+ *
+ *-------------------------------------------------------------------------------------------*/
 public abstract  class Product {
     public static final char delimiter = '@';
     private final String id ;
