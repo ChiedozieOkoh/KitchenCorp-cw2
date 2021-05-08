@@ -25,9 +25,15 @@ public class StudentCustomer extends Customer{
         return super.chargeAccount(Math.round(fCharge));
     }
     @Override
+    public boolean isNegative(){
+        return getBalance() < OVERDRAFT;
+    }
+    @Override
     public String toString(){
 
-        return getID() + delimiter + getName()+ delimiter + (getBalance() - OVERDRAFT) + delimiter + "STUDENT";
+        return getID() + delimiter + getName()+ delimiter + (getBalance() - OVERDRAFT ) + delimiter + "STUDENT";
     }
+
+
 
 }

@@ -11,7 +11,7 @@ public class Simulation {
             SnackShop snackShop = initialiseShop("snaq",productFile,customerFile);
             simulateShopping(snackShop,ledger);
         }catch(FileNotFoundException e ){
-            e.printStackTrace();
+            System.err.println("Could not find simulation files");
         }
     }
     public static SnackShop initialiseShop (String shopName , File productFile , File customerFile )throws FileNotFoundException{
@@ -22,9 +22,9 @@ public class Simulation {
 
 
     }
-    public static void simulateShopping (SnackShop shop , File ledger )throws FileNotFoundException{
+    public static void simulateShopping (SnackShop shop , File transactionFile )throws FileNotFoundException{
 
-        shop.parseTransactions(ledger);
+        shop.parseTransactions(transactionFile);
         System.out.println("Turnover: " + shop.getTurnOver());
     }
 

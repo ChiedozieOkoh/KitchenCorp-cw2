@@ -3,6 +3,7 @@ public class Customer {
     private final String id ;
     private final String name;
     private int balance  = 0;
+    private boolean isNegative = false;
     public Customer(String id, String name , int balance )throws InvalidCustomerException{
         validate(id,balance);
         this.id = id ;
@@ -67,6 +68,9 @@ public class Customer {
     }
     public String getName(){
         return name;
+    }
+    public boolean isNegative(){
+        return isNegative;
     }
 
 

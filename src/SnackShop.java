@@ -122,7 +122,7 @@ public class SnackShop {
         ArrayList<Customer> customers = new ArrayList<>(customerMap.values()
             .stream().collect(Collectors.toUnmodifiableList()));
         for(Customer i : customers){
-            if (i.getBalance() < 0 ){
+            if (i.getBalance() < 0  || i.isNegative()){
                 count++;
             }
         }

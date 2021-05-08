@@ -26,7 +26,16 @@ public class Test {
             System.exit(0);
         }
 
-        testTransaction();
+        if(!testTransaction()){
+            System.err.println("transactions tests failed! ");
+            System.err.println("Exiting early...");
+            System.exit(0);
+        }
+        if(!testSort()){
+            System.err.println("sorting tests failed! ");
+            System.err.println("Exiting early...");
+            System.exit(0);
+        }
 
     }
     public static void printFailure(int testNum , String testSummary ,SimulationException e ){
@@ -323,6 +332,55 @@ public class Test {
         }
 
         System.out.println("Transaction test ended with expected results ");
+        return true;
+    }
+    public static boolean testSort(){
+        SnackShop shop = new SnackShop("test");
+        Food f0 = new Food("F-0000000","zero", Food.FOOD_TYPE.COLD,1);
+        Food f1 = new Food("F-1111111","one", Food.FOOD_TYPE.COLD,2);
+        Food f2 = new Food("F-2222222","two", Food.FOOD_TYPE.COLD,3);
+        Food f3 = new Food("F-3333333","three", Food.FOOD_TYPE.COLD,4);
+        Food f4 = new Food("F-4444444","four", Food.FOOD_TYPE.COLD,5);
+        shop.addProduct(f0);
+        shop.addProduct(f1);
+        shop.addProduct(f2);
+        shop.addProduct(f3);
+        shop.addProduct(f4);
+        String summary = "assert that largest base price is calculated properly ";
+        if (shop.findLargestBasePrice() != 5 ){
+            printFailure(14,summary,null);
+            return false;
+        }
+        printSuccess(14,summary,f4);
+
+
+        Customer c0 = new Customer("000000","James Bond" , 1);
+        Customer c1 = new Customer("111111","Don Pablo",2);
+        Customer c2 = new Customer("222222","Elon Musk", 69);
+        StudentCustomer c3 = new StudentCustomer("333333","Elliot Alderson",1);
+        c3.chargeAccount(20);
+        Customer c4 = new Customer("444444","Joe Pescas",7);
+        shop.addCustomer(c0);
+        shop.addCustomer(c1);
+        shop.addCustomer(c2);
+        shop.addCustomer(c3);
+        shop.addCustomer(c4);
+        summary = "assert that negative accounts are counted correctly";
+        System.out.println("balance: " +c3.getBalance());
+        System.out.println("negative accounts:" + shop.countNegativeAccounts() );
+        if(shop.countNegativeAccounts() != 1){
+            printFailure(15,summary,null);
+            return false;
+        }
+
+        summary = "assert that median balance is calculated correctly";
+        System.out.println(""+shop.calculateMedianBalance());
+        if(shop.calculateMedianBalance() != c2.getBalance()){
+            printFailure(16,summary,null);
+            return false;
+        }
+        printSuccess(16,summary,c2);
+        System.out.println("Sorting test ended with expected results");
         return true;
     }
 
